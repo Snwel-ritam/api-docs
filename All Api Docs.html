@@ -1,0 +1,2231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Pipe Data API Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --secondary: #3b82f6;
+            --accent: #1e40af;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray: #64748b;
+            --gray-light: #e2e8f0;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        header {
+            background: white;
+            border-radius: 12px;
+            padding: 25px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo i {
+            font-size: 32px;
+            color: var(--primary);
+        }
+
+        .logo h1 {
+            font-size: 28px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 700;
+        }
+
+        .server-config {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: var(--gray-light);
+            padding: 12px 20px;
+            border-radius: 10px;
+        }
+
+        .config-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .config-label {
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 14px;
+        }
+
+        .config-input {
+            padding: 8px 12px;
+            border: 2px solid #d1d5db;
+            border-radius: 6px;
+            width: 100px;
+            font-size: 14px;
+        }
+
+        .btn-save {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .btn-save:hover {
+            background: var(--accent);
+        }
+
+        .server-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: var(--gray-light);
+            border-radius: 50px;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            background: white;
+            border-radius: 12px;
+            padding: 5px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--gray);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover {
+            background: var(--gray-light);
+            color: var(--dark);
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tab-btn .badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+
+        /* Main Content */
+        .tab-content {
+            display: none;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--gray-light);
+        }
+
+        .section-title i {
+            color: var(--primary);
+            font-size: 24px;
+        }
+
+        .section-title h2 {
+            font-size: 24px;
+            color: var(--dark);
+        }
+
+        .api-count {
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* API Cards */
+        .api-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .api-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            border-left: 5px solid var(--primary);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid var(--gray-light);
+        }
+
+        .api-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .api-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .api-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .api-type {
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .api-url {
+            background: var(--gray-light);
+            padding: 12px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin: 15px 0;
+            word-break: break-all;
+            color: var(--dark);
+            border: 1px solid #d1d5db;
+            line-height: 1.4;
+        }
+
+        .api-params {
+            margin: 15px 0;
+        }
+
+        .param-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .param-item {
+            display: inline-block;
+            background: var(--gray-light);
+            padding: 4px 10px;
+            border-radius: 15px;
+            margin: 3px;
+            font-size: 13px;
+        }
+
+        .api-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent);
+        }
+
+        .btn-secondary {
+            background: var(--gray-light);
+            color: var(--dark);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray);
+            color: white;
+        }
+
+        /* Test API Section */
+        .test-section {
+            background: var(--gray-light);
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .response-section {
+            margin-top: 30px;
+        }
+
+        .response-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+
+        .response-box {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        /* Search Bar */
+        .search-container {
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #d1d5db;
+            border-radius: 12px;
+            font-size: 16px;
+            background: white;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: var(--gray);
+            font-size: 14px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-top: 30px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .api-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-tabs {
+                flex-wrap: wrap;
+            }
+            
+            header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .server-config {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .tab-btn {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+        }
+
+        /* Integration Status Styles */
+        .integration-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--gray-light);
+        }
+
+        .status-btn {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #d97706;
+            border: 1px solid #fbbf24;
+        }
+
+        .status-pending:hover {
+            background: #fde68a;
+        }
+
+        .status-complete {
+            background: #d1fae5;
+            color: #059669;
+            border: 1px solid #10b981;
+        }
+
+        .status-complete:hover {
+            background: #a7f3d0;
+        }
+
+        .status-inprogress {
+            background: #dbeafe;
+            color: #2563eb;
+            border: 1px solid #3b82f6;
+        }
+
+        .status-inprogress:hover {
+            background: #bfdbfe;
+        }
+
+        .integration-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1001;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .integration-modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .integration-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .integration-option {
+            padding: 12px 15px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .integration-option:hover {
+            border-color: var(--primary);
+            background: var(--gray-light);
+        }
+
+        .integration-option.selected {
+            border-color: var(--primary);
+            background: #dbeafe;
+        }
+
+        .integration-option i {
+            font-size: 18px;
+        }
+
+        .integration-badge {
+            margin-left: auto;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .badge-complete {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .badge-inprogress {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        /* Integration Stats */
+        .integration-stats {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 15px;
+            background: var(--gray-light);
+        }
+
+        .stat-pending { color: #d97706; }
+        .stat-inprogress { color: #2563eb; }
+        .stat-complete { color: #059669; }
+
+        /* Add to header */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-integration-stats {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-integration-stats:hover {
+            background: #0da271;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <i class="fas fa-pipe"></i>
+                <h1>Complete Pipe Data API Dashboard</h1>
+            </div>
+            
+            <div class="header-actions">
+                <div class="server-config">
+                    <div class="config-group">
+                        <span class="config-label">Server Port:</span>
+                        <input type="text" class="config-input" id="serverPort" value="8080" placeholder="8000">
+                    </div>
+                    <button class="btn-save" onclick="updateServerConfig()">
+                        <i class="fas fa-sync-alt"></i> Update
+                    </button>
+                </div>
+                
+                <button class="btn-integration-stats" onclick="showIntegrationStats()">
+                    <i class="fas fa-chart-bar"></i> Integration Stats
+                </button>
+                
+                <div class="server-status">
+                    <div class="status-dot"></div>
+                    <span id="serverStatus">Server: http://127.0.0.1:8080</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Search -->
+        <div class="search-container">
+            <input type="text" class="search-box" id="searchInput" placeholder="Search APIs by name, endpoint, or parameters..." onkeyup="searchAPIs()">
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('all-apis')">
+                <i class="fas fa-globe"></i> All APIs <span class="badge" id="allCount">0</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('pipes')">
+                <i class="fas fa-pipe"></i> Pipes <span class="badge" id="pipesCount">1</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('elbows')">
+                <i class="fas fa-bend"></i> Elbows <span class="badge" id="elbowsCount">4</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('tees')">
+                <i class="fas fa-t"></i> Tees <span class="badge" id="teesCount">10</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('reducers')">
+                <i class="fas fa-arrows-alt-h"></i> Reducers <span class="badge" id="reducersCount">4</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('flanges')">
+                <i class="fas fa-circle"></i> Flanges <span class="badge" id="flangesCount">40</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('couplings')">
+                <i class="fas fa-link"></i> Couplings <span class="badge" id="couplingsCount">4</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('caps')">
+                <i class="fas fa-circle-notch"></i> Caps <span class="badge" id="capsCount">4</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('structural')">
+                <i class="fas fa-cubes"></i> Structural <span class="badge" id="structuralCount">3</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('unit')">
+                <i class="fas fa-ruler"></i> Unit <span class="badge" id="unitCount">2</span>
+            </button>
+        </div>
+
+        <!-- All APIs Tab -->
+        <div id="all-apis" class="tab-content active">
+            <div class="section-title">
+                <i class="fas fa-globe"></i>
+                <h2>All APIs</h2>
+                <div class="api-count" id="totalApiCount">0 APIs</div>
+            </div>
+            <div class="api-grid" id="all-apis-grid">
+                <!-- All APIs will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Pipe Data Tab -->
+        <div id="pipes" class="tab-content">
+            <div class="section-title">
+                <i class="fas fa-pipe"></i>
+                <h2>Pipe Data APIs</h2>
+                <div class="api-count">1 API</div>
+            </div>
+            <div class="api-grid" id="pipes-grid">
+                <!-- Pipe APIs will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Elbows Tab -->
+        <div id="elbows" class="tab-content">
+            <div class="section-title">
+                <i class="fas fa-bend"></i>
+                <h2>Elbow Fittings APIs</h2>
+                <div class="api-count">4 APIs</div>
+            </div>
+            <div class="api-grid" id="elbows-grid">
+                <!-- Elbow APIs will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Tees Tab -->
+        <div id="tees" class="tab-content">
+            <div class="section-title">
+                <i class="fas fa-t"></i>
+                <h2>Tee Fittings APIs</h2>
+                <div class="api-count">10 APIs</div>
+            </div>
+            <div class="api-grid" id="tees-grid">
+                <!-- Tee APIs will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Reducers Tab -->
+        <div id="reducers" class="tab-content">
+            <div class="section-title">
+                <i class="fas fa-arrows-alt-h"></i>
+                <h2>Reducer APIs</h2>
+                <div class="api-count">4 APIs</div>
+            </div>
+            <div class="api-grid" id="reducers-grid">
+                <!-- Reducer APIs will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Flanges Tab -->
+        <div id="flanges" class="tab-content">
+            <div class="section-title">
+                <i class="fas fa-circle"></i>
+                <h2>Flange APIs</h2>
+                <div class="api-count">40 APIs</div>
+            </div>
+            <div class="api-grid" id="flanges-grid">
+                <!-- Flange APIs will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Couplings Tab -->
+        <div id="couplings" class="tab-content">
+            <div class="section-title">
+                <i class="fas fa-link"></i>
+                <h2>Coupling APIs</h2>
+                <div class="api-count">4 APIs</div>
+            </div>
+            <div class="api-grid" id="couplings-grid">
+                <!-- Coupling APIs will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Caps Tab -->
+        <div id="caps" class="tab-content">
+            <div class="section-title">
+                <i class="fas fa-circle-notch"></i>
+                <h2>Caps APIs</h2>
+                <div class="api-count">4 APIs</div>
+            </div>
+            <div class="api-grid" id="caps-grid">
+                <!-- Caps APIs will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Structural Tab -->
+        <div id="structural" class="tab-content">
+            <div class="section-title">
+                <i class="fas fa-cubes"></i>
+                <h2>Structural Components APIs</h2>
+                <div class="api-count">3 APIs</div>
+            </div>
+            <div class="api-grid" id="structural-grid">
+                <!-- Structural APIs will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Unit Tab -->
+        <div id="unit" class="tab-content">
+            <div class="section-title">
+                <i class="fas fa-ruler"></i>
+                <h2>Unit Conversion APIs</h2>
+                <div class="api-count">2 APIs</div>
+            </div>
+            <div class="api-grid" id="unit-grid">
+                <!-- Unit APIs will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Test API Section -->
+        <div class="test-section" id="testSection" style="display: none;">
+            <h3 style="margin-bottom: 20px; color: var(--dark);">Test API</h3>
+            
+            <div class="form-group">
+                <label class="form-label">API URL</label>
+                <input type="text" class="form-input" id="testUrl" readonly>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Custom Parameters (JSON format)</label>
+                <textarea class="form-input" id="testParams" rows="4" placeholder='{"param1": "value1", "param2": "value2"}'></textarea>
+            </div>
+
+            <button class="btn btn-primary" onclick="sendTestRequest()">
+                <i class="fas fa-rocket"></i> Send Request
+            </button>
+            <button class="btn btn-secondary" onclick="closeTestSection()">
+                <i class="fas fa-times"></i> Close
+            </button>
+
+            <div class="response-section">
+                <div class="response-title">Response</div>
+                <div class="response-box" id="testResponse">
+                    Response will appear here...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Integration Status Modal -->
+    <div class="integration-modal" id="integrationModal">
+        <div class="integration-modal-content">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid var(--gray-light);">
+                <h2 style="font-size: 24px; color: var(--dark); display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-code-branch"></i> Update Integration Status
+                </h2>
+                <button class="close-modal" onclick="closeIntegrationModal()" style="background: var(--gray-light); border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: all 0.3s;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">API: <span id="integrationApiName" style="font-weight: 700;"></span></label>
+                <div style="color: var(--gray); font-size: 14px; margin-top: 5px;" id="integrationApiEndpoint"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Select Integration Status</label>
+                <div class="integration-options">
+                    <div class="integration-option" onclick="selectIntegrationStatus('pending')" id="statusPending">
+                        <i class="fas fa-clock" style="color: #f59e0b;"></i>
+                        <span>Pending</span>
+                        <span class="integration-badge badge-pending">Not Started</span>
+                    </div>
+                    
+                    <div class="integration-option" onclick="selectIntegrationStatus('inprogress')" id="statusInProgress">
+                        <i class="fas fa-spinner fa-spin" style="color: #3b82f6;"></i>
+                        <span>In Progress</span>
+                        <span class="integration-badge badge-inprogress">Development</span>
+                    </div>
+                    
+                    <div class="integration-option" onclick="selectIntegrationStatus('complete')" id="statusComplete">
+                        <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                        <span>Complete</span>
+                        <span class="integration-badge badge-complete">Ready</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-top: 30px; padding-top: 20px; border-top: 2px solid var(--gray-light);">
+                <button class="btn btn-secondary" onclick="closeIntegrationModal()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button class="btn btn-primary" onclick="saveIntegrationStatus()">
+                    <i class="fas fa-save"></i> Save Status
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Complete Pipe Data API Dashboard v2.0 | Total: <span id="footerCount">0</span> APIs | PostgreSQL Backend | Django REST Framework</p>
+        <p style="margin-top: 10px; font-size: 12px;">
+            <i class="fas fa-database"></i> Database: PostgreSQL | 
+            <i class="fas fa-server"></i> Server: Django | 
+            <i class="fas fa-code"></i> Frontend: HTML/CSS/JS | 
+            <i class="fas fa-bolt"></i> Dynamic Port Configuration |
+            <i class="fas fa-chart-bar"></i> Integration Tracking
+        </p>
+    </footer>
+
+    <script>
+        // Configuration
+        let serverPort = localStorage.getItem('pipeApiPort') || '8080';
+        let allAPIs = [];
+        let currentApiId = null;
+        let selectedStatus = 'pending';
+        
+        // Update server configuration
+        function updateServerConfig() {
+            serverPort = document.getElementById('serverPort').value;
+            localStorage.setItem('pipeApiPort', serverPort);
+            document.getElementById('serverStatus').textContent = `Server: http://127.0.0.1:${serverPort}`;
+            updateAllAPIURLs();
+            showNotification('Server configuration updated successfully!', 'success');
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 1000;
+                animation: slideIn 0.3s ease-out;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // ALL YOUR APIs DATA with Integration Status
+        const apiData = [
+            // Pipe Data APIs
+            {
+                id: 1,
+                name: "Full Pipe Data",
+                endpoint: "/api/options/full/",
+                method: "GET",
+                category: "pipes",
+                params: ["pipe_standard", "schedule_inch", "unit", "size_nps"],
+                example: "?pipe_standard=ASMEB36.10M&schedule_inch=30&unit=inch&size_nps=4",
+                description: "Get complete pipe data with specifications",
+                integrationStatus: "pending"
+            },
+
+            // Elbow APIs
+            {
+                id: 2,
+                name: "Socket Weld Elbows",
+                endpoint: "/api/sw-elbows/",
+                method: "GET",
+                category: "elbows",
+                params: ["unit", "standard", "degree", "rating", "size"],
+                example: "?unit=mm&standard=ASME B16.11&degree=45&rating=6000&size=DN15",
+                description: "Get socket weld elbow specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 3,
+                name: "Butt Weld Elbows",
+                endpoint: "/api/bw-elbows/",
+                method: "GET",
+                category: "elbows",
+                params: ["unit", "standard", "schedule", "size", "radius", "angle"],
+                example: "?unit=mm&standard=ASME B16.9&schedule=5.5&size=DN50&radius=LR&angle=45",
+                description: "Get butt weld elbow specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 4,
+                name: "Threaded Elbows",
+                endpoint: "/api/th-elbows/",
+                method: "GET",
+                category: "elbows",
+                params: ["unit", "size", "rating", "degree", "standard"],
+                example: "?unit=mm&size=DN20&rating=6000&degree=45&standard=ASME B16.11",
+                description: "Get threaded elbow specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 5,
+                name: "IS1239 Elbow Type1A",
+                endpoint: "/api/is1239-elbow-type1a/",
+                method: "GET",
+                category: "elbows",
+                params: ["unit", "size", "shedule"],
+                example: "?unit=mm&size=50&shedule=MEDIUM",
+                description: "Get IS1239 elbow type1A specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 6,
+                name: "IS1239 Elbow Type1",
+                endpoint: "/api/is1239-elbow-type1/",
+                method: "GET",
+                category: "elbows",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=50&schedule=MEDIUM",
+                description: "Get IS1239 elbow type1 specifications",
+                integrationStatus: "pending"
+            },
+
+            // Tee APIs
+            {
+                id: 7,
+                name: "BW Equal Tee",
+                endpoint: "/api/bw-equal-tee/",
+                method: "GET",
+                category: "tees",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=DN50&schedule=3.91",
+                description: "Get butt weld equal tee specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 8,
+                name: "SW Equal Tee",
+                endpoint: "/api/sw-equal-tee/",
+                method: "GET",
+                category: "tees",
+                params: ["size", "rating", "unit"],
+                example: "?size=DN50&rating=3000&unit=mm",
+                description: "Get socket weld equal tee specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 9,
+                name: "TH Equal Tee",
+                endpoint: "/api/th-equal-tee/",
+                method: "GET",
+                category: "tees",
+                params: ["size", "rating", "unit"],
+                example: "?size=15&rating=2000&unit=mm",
+                description: "Get threaded equal tee specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 10,
+                name: "BW Reducing Tee",
+                endpoint: "/api/bw-reducing-tee/",
+                method: "GET",
+                category: "tees",
+                params: ["unit", "main_size", "reducing_size", "schedule"],
+                example: "?unit=mm&main_size=DN50&reducing_size=DN25&schedule=5.54",
+                description: "Get butt weld reducing tee specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 11,
+                name: "IS1239 Equal Tee Part2",
+                endpoint: "/api/is1239-equal-tee-part2/",
+                method: "GET",
+                category: "tees",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=65&schedule=MEDIUM",
+                description: "Get IS1239 equal tee part2 specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 12,
+                name: "IS1239 Reducing Tee",
+                endpoint: "/api/is1239-reducing-tee/",
+                method: "GET",
+                category: "tees",
+                params: ["unit", "main_size", "reducing_size", "schedule"],
+                example: "?unit=mm&main_size=50&reducing_size=25&schedule=MEDIUM",
+                description: "Get IS1239 reducing tee specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 13,
+                name: "BW Equal Cross Tee",
+                endpoint: "/api/bw-cross-tee/",
+                method: "GET",
+                category: "tees",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=15&schedule=40S",
+                description: "Get butt weld equal cross tee specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 14,
+                name: "SW Equal Cross Tee",
+                endpoint: "/api/sw-cross-tee/",
+                method: "GET",
+                category: "tees",
+                params: ["unit", "size", "rating"],
+                example: "?unit=mm&size=15&rating=3000",
+                description: "Get socket weld equal cross tee specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 15,
+                name: "TH Equal Cross Tee",
+                endpoint: "/api/th-cross-tee/",
+                method: "GET",
+                category: "tees",
+                params: ["size", "rating", "unit"],
+                example: "?size=15&rating=2000&unit=mm",
+                description: "Get threaded equal cross tee specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 16,
+                name: "IS1239 Cross Tee Part2",
+                endpoint: "/api/is1239-cross-tee-part2/",
+                method: "GET",
+                category: "tees",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=6&schedule=MEDIUM",
+                description: "Get IS1239 cross tee part2 specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 17,
+                name: "BW Reducing Cross Tee",
+                endpoint: "/api/bw-reducing-cross-tee/",
+                method: "GET",
+                category: "tees",
+                params: ["unit", "main_size", "reducing_size", "schedule"],
+                example: "?unit=mm&main_size=50&reducing_size=25&schedule=5.54",
+                description: "Get butt weld reducing cross tee specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 18,
+                name: "IS1239 Reducing Cross Tee",
+                endpoint: "/api/is1239-reducing-cross-tee/",
+                method: "GET",
+                category: "tees",
+                params: ["unit", "main_size", "reducing_size", "schedule"],
+                example: "?unit=mm&main_size=50&reducing_size=25&schedule=MEDIUM",
+                description: "Get IS1239 reducing cross tee specifications",
+                integrationStatus: "pending"
+            },
+
+            // Reducer APIs
+            {
+                id: 19,
+                name: "BW Concentric Reducer",
+                endpoint: "/api/bw-concentric-reducer/",
+                method: "GET",
+                category: "reducers",
+                params: ["unit", "size", "reducing_size", "schedule"],
+                example: "?unit=mm&size=50&reducing_size=25&schedule=SCH 40",
+                description: "Get butt weld concentric reducer specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 20,
+                name: "Swage Concentric Reducer",
+                endpoint: "/api/swage-concentric-reducer/",
+                method: "GET",
+                category: "reducers",
+                params: ["unit", "size", "reducing_size", "schedule"],
+                example: "?unit=mm&size=50&reducing_size=25&schedule=SCH%2040",
+                description: "Get swage concentric reducer specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 21,
+                name: "BW Eccentric Reducer",
+                endpoint: "/api/bw-eccentric-reducer/",
+                method: "GET",
+                category: "reducers",
+                params: ["unit", "size", "reducing_size", "schedule"],
+                example: "?unit=mm&size=50&reducing_size=25&schedule=SCH 40",
+                description: "Get butt weld eccentric reducer specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 22,
+                name: "Swage Eccentric Reducer",
+                endpoint: "/api/swage-eccentric-reducer/",
+                method: "GET",
+                category: "reducers",
+                params: ["unit", "size", "reducing_size", "schedule"],
+                example: "?unit=mm&size=50&reducing_size=25&schedule=SCH%2040",
+                description: "Get swage eccentric reducer specifications",
+                integrationStatus: "pending"
+            },
+
+            // Coupling APIs
+            {
+                id: 23,
+                name: "SW Full Coupling",
+                endpoint: "/api/sw-full-coupling/",
+                method: "GET",
+                category: "couplings",
+                params: ["unit", "size", "rating"],
+                example: "?unit=mm&size=25&rating=9000",
+                description: "Get socket weld full coupling specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 24,
+                name: "SW Half Coupling",
+                endpoint: "/api/sw-half-coupling/",
+                method: "GET",
+                category: "couplings",
+                params: ["unit", "size", "rating"],
+                example: "?unit=mm&size=25&rating=3000",
+                description: "Get socket weld half coupling specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 25,
+                name: "TH Full Coupling",
+                endpoint: "/api/th-full-couplings/",
+                method: "GET",
+                category: "couplings",
+                params: ["unit", "size", "rating"],
+                example: "?unit=mm&size=25&rating=3000",
+                description: "Get threaded full coupling specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 26,
+                name: "TH Half Coupling",
+                endpoint: "/api/th-half-couplings/",
+                method: "GET",
+                category: "couplings",
+                params: ["unit", "size", "rating"],
+                example: "?unit=mm&size=25&rating=3000",
+                description: "Get threaded half coupling specifications",
+                integrationStatus: "pending"
+            },
+
+            // Caps APIs
+            {
+                id: 27,
+                name: "BW Caps",
+                endpoint: "/api/bw-caps/",
+                method: "GET",
+                category: "caps",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=25&schedule=SCH 40",
+                description: "Get butt weld caps specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 28,
+                name: "SW Caps",
+                endpoint: "/api/sw-caps/",
+                method: "GET",
+                category: "caps",
+                params: ["unit", "size", "rating"],
+                example: "?unit=mm&size=25&rating=3000",
+                description: "Get socket weld caps specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 29,
+                name: "TH Caps",
+                endpoint: "/api/th-caps/",
+                method: "GET",
+                category: "caps",
+                params: ["unit", "size", "rating"],
+                example: "?unit=mm&size=25&rating=3000",
+                description: "Get threaded caps specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 30,
+                name: "Caps IS1239 Part2",
+                endpoint: "/api/caps-is1239-part2/",
+                method: "GET",
+                category: "caps",
+                params: ["unit", "size_dn"],
+                example: "?unit=mm&size_dn=25",
+                description: "Get IS1239 part2 caps specifications",
+                integrationStatus: "pending"
+            },
+
+            // Structural APIs
+            {
+                id: 31,
+                name: "I Member",
+                endpoint: "/api/i-members/",
+                method: "GET",
+                category: "structural",
+                params: ["member_type", "designation"],
+                example: "?member_type=ISMB&designation=ISMB 300",
+                description: "Get I member structural specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 32,
+                name: "C Channel",
+                endpoint: "/api/c-channels/",
+                method: "GET",
+                category: "structural",
+                params: ["member_name", "designation"],
+                example: "?member_name=ISJC&designation=ISJC 100",
+                description: "Get C channel structural specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 33,
+                name: "L Angle",
+                endpoint: "/api/l-angles/",
+                method: "GET",
+                category: "structural",
+                params: ["member_name", "designation"],
+                example: "?member_name=EQUAL&designation=100x100x10",
+                description: "Get L angle structural specifications",
+                integrationStatus: "pending"
+            },
+
+            // Flange APIs (24 APIs)
+            {
+                id: 34,
+                name: "WN Flange 150 RF",
+                endpoint: "/api/wn-flange-150/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=50&schedule=40",
+                description: "Get WN flange 150 RF specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 35,
+                name: "WN Flange 150 RTJ",
+                endpoint: "/api/wn-flange-150-rtj/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=300&schedule=SCH 40",
+                description: "Get WN flange 150 RTJ specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 36,
+                name: "WN Flange 300 RF",
+                endpoint: "/api/wn-flange-300-rf/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=50&schedule=SCH 40",
+                description: "Get WN flange 300 RF specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 37,
+                name: "WN Flange 300 RTJ",
+                endpoint: "/api/wn-flange-300-rtj/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=300&schedule=SCH 40",
+                description: "Get WN flange 300 RTJ specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 38,
+                name: "WN Flange 400 RF",
+                endpoint: "/api/wn-flange-400-rf/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=50&schedule=SCH 40",
+                description: "Get WN flange 400 RF specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 39,
+                name: "WN Flange 400 RTJ",
+                endpoint: "/api/wn-flange-400-rtj/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=300&schedule=SCH 40",
+                description: "Get WN flange 400 RTJ specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 40,
+                name: "WN Flange 400 TG",
+                endpoint: "/api/wn-flange-400-tg/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=300&schedule=SCH 40",
+                description: "Get WN flange 400 TG specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 41,
+                name: "WN Flange 600 RF",
+                endpoint: "/api/wn-flange-600-rf/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=50&schedule=SCH 40",
+                description: "Get WN flange 600 RF specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 42,
+                name: "WN Flange 600 RTJ",
+                endpoint: "/api/wn-flange-600-rtj/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=300&schedule=SCH 40",
+                description: "Get WN flange 600 RTJ specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 43,
+                name: "WN Flange 600 TG",
+                endpoint: "/api/wn-flange-600-tg/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=50&schedule=SCH 40",
+                description: "Get WN flange 600 TG specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 44,
+                name: "WN Flange 900 RF",
+                endpoint: "/api/wn-flange-600-rf/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=50&schedule=SCH 40",
+                description: "Get WN flange 900 RF specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 45,
+                name: "WN Flange 900 RTJ",
+                endpoint: "/api/wn-flange-900-rtj/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=25&schedule=SCH 160",
+                description: "Get WN flange 900 RTJ specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 46,
+                name: "WN Flange 900 TG",
+                endpoint: "/api/wn-flange-900-tg/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=50&schedule=SCH 80",
+                description: "Get WN flange 900 TG specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 47,
+                name: "WN Flange 1500 RF",
+                endpoint: "/api/wn-flange-1500-rf/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=100&schedule=SCH 80",
+                description: "Get WN flange 1500 RF specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 48,
+                name: "WN Flange 1500 RTJ",
+                endpoint: "/api/wn-flange-1500-rtj/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=25&schedule=SCH 160",
+                description: "Get WN flange 1500 RTJ specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 49,
+                name: "WN Flange 1500 TG",
+                endpoint: "/api/wn-flange-900-tg/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=50&schedule=SCH 80",
+                description: "Get WN flange 1500 TG specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 50,
+                name: "WN Flange 2500 RF",
+                endpoint: "/api/wn-flange-2500-rf/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=100&schedule=SCH 80",
+                description: "Get WN flange 2500 RF specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 51,
+                name: "WN Flange 2500 RTJ",
+                endpoint: "/api/wn-flange-2500-rtj/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=25&schedule=SCH 160",
+                description: "Get WN flange 2500 RTJ specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 52,
+                name: "WN Flange 2500 TG",
+                endpoint: "/api/wn-flange-900-tg/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=50&schedule=SCH 80",
+                description: "Get WN flange 2500 TG specifications",
+                integrationStatus: "pending"
+            },
+
+            // Unit APIs
+            {
+                id: 53,
+                name: "Unit Category",
+                endpoint: "/api/unit-categories/",
+                method: "GET",
+                category: "unit",
+                params: [],
+                example: "",
+                description: "Get unit categories",
+                integrationStatus: "pending"
+            },
+            {
+                id: 54,
+                name: "Unit Conversion",
+                endpoint: "/api/convert-units/",
+                method: "POST",
+                category: "unit",
+                params: ["value", "from_unit", "to_unit"],
+                example: "",
+                description: "Convert between different units",
+                postBody: {
+                    value: 1,
+                    from_unit: "mm",
+                    to_unit: "um"
+                },
+                integrationStatus: "pending"
+            },
+
+            // Other APIs from your list
+            {
+                id: 55,
+                name: "Stub End",
+                endpoint: "/api/stub-end/",
+                method: "GET",
+                category: "structural",
+                params: ["unit", "size", "schedule"],
+                example: "?unit=mm&size=25&schedule=SCH 40",
+                description: "Get stub end specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 56,
+                name: "API Logs",
+                endpoint: "/api/logs/",
+                method: "GET",
+                category: "unit",
+                params: [],
+                example: "",
+                description: "Get API access logs",
+                integrationStatus: "pending"
+            },
+
+            // Slip On Flange APIs - NEWLY ADDED
+            {
+                id: 57,
+                name: "SLIP ON FLANGE 150 RF",
+                endpoint: "/api/so-flange-150-rf/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size"],
+                example: "?unit=mm&size=100",
+                description: "Get Slip On Flange 150 RF specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 58,
+                name: "SLIP ON FLANGE 150 RTJ",
+                endpoint: "/api/so-flange-150-rtj/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size"],
+                example: "?unit=mm&size=50",
+                description: "Get Slip On Flange 150 RTJ specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 59,
+                name: "SLIP ON FLANGE 300 RF",
+                endpoint: "/api/so-flange-300-rf/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size"],
+                example: "?unit=mm&size=100",
+                description: "Get Slip On Flange 300 RF specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 60,
+                name: "SLIP ON FLANGE 300 RTJ",
+                endpoint: "/api/so-flange-300-rtj/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size"],
+                example: "?unit=mm&size=50",
+                description: "Get Slip On Flange 300 RTJ specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 61,
+                name: "SLIP ON FLANGE 400 RF",
+                endpoint: "/api/so-flange-400-rf/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size"],
+                example: "?unit=mm&size=100",
+                description: "Get Slip On Flange 400 RF specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 62,
+                name: "SLIP ON FLANGE 400 RTJ",
+                endpoint: "/api/so-flange-400-rtj/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size"],
+                example: "?unit=mm&size=50",
+                description: "Get Slip On Flange 400 RTJ specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 63,
+                name: "SLIP ON FLANGE 400 TG",
+                endpoint: "/api/so-flange-400-tg/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size"],
+                example: "?unit=mm&size=50",
+                description: "Get Slip On Flange 400 TG specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 64,
+                name: "SLIP ON FLANGE 600 RF",
+                endpoint: "/api/so-flange-600-rf/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size"],
+                example: "?unit=mm&size=50",
+                description: "Get Slip On Flange 600 RF specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 65,
+                name: "SLIP ON FLANGE 600 RTJ",
+                endpoint: "/api/so-flange-600-rtj/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size"],
+                example: "?unit=mm&size=50",
+                description: "Get Slip On Flange 600 RTJ specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 66,
+                name: "SLIP ON FLANGE 600 TG",
+                endpoint: "/api/so-flange-600-tg/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size"],
+                example: "?unit=mm&size=50",
+                description: "Get Slip On Flange 600 TG specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 67,
+                name: "SLIP ON FLANGE 900 RF",
+                endpoint: "/api/so-flange-900-rf/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size"],
+                example: "?unit=mm&size=100",
+                description: "Get Slip On Flange 900 RF specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 68,
+                name: "SLIP ON FLANGE 900 RTJ",
+                endpoint: "/api/so-flange-600-rtj/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size"],
+                example: "?unit=mm&size=50",
+                description: "Get Slip On Flange 900 RTJ specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 69,
+                name: "SLIP ON FLANGE 900 TG",
+                endpoint: "/api/so-flange-900-tg/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size"],
+                example: "?unit=mm&size=50",
+                description: "Get Slip On Flange 900 TG specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 70,
+                name: "SLIP ON FLANGE 1500 RF",
+                endpoint: "/api/so-flange-1500-rf/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size"],
+                example: "?unit=mm&size=100",
+                description: "Get Slip On Flange 1500 RF specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 71,
+                name: "SLIP ON FLANGE 1500 RTJ",
+                endpoint: "/api/so-flange-1500-rtj/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size"],
+                example: "?unit=mm&size=50",
+                description: "Get Slip On Flange 1500 RTJ specifications",
+                integrationStatus: "pending"
+            },
+            {
+                id: 72,
+                name: "SLIP ON FLANGE 1500 TG",
+                endpoint: "/api/so-flange-1500-tg/",
+                method: "GET",
+                category: "flanges",
+                params: ["unit", "size"],
+                example: "?unit=mm&size=50",
+                description: "Get Slip On Flange 1500 TG specifications",
+                integrationStatus: "pending"
+            }
+        ];
+
+        // Initialize the dashboard
+        function initializeDashboard() {
+            // Load saved integration status from localStorage
+            loadIntegrationStatus();
+            
+            allAPIs = apiData;
+            updateAllAPIURLs();
+            loadAllAPIs();
+            updateCounts();
+            document.getElementById('serverPort').value = serverPort;
+            document.getElementById('serverStatus').textContent = `Server: http://127.0.0.1:${serverPort}`;
+        }
+
+        // Load integration status from localStorage
+        function loadIntegrationStatus() {
+            const savedStatus = localStorage.getItem('apiIntegrationStatus');
+            if (savedStatus) {
+                const statusData = JSON.parse(savedStatus);
+                apiData.forEach(api => {
+                    if (statusData[api.id]) {
+                        api.integrationStatus = statusData[api.id];
+                    }
+                });
+            }
+        }
+
+        // Save integration status to localStorage
+        function saveIntegrationStatusToStorage() {
+            const statusData = {};
+            apiData.forEach(api => {
+                statusData[api.id] = api.integrationStatus || 'pending';
+            });
+            localStorage.setItem('apiIntegrationStatus', JSON.stringify(statusData));
+        }
+
+        // Update all API URLs with current port
+        function updateAllAPIURLs() {
+            allAPIs.forEach(api => {
+                api.fullUrl = `http://127.0.0.1:${serverPort}${api.endpoint}${api.example}`;
+            });
+        }
+
+        // Create API card HTML with Integration Status
+        function createAPICard(api) {
+            const statusConfig = {
+                pending: { class: 'status-pending', icon: 'fa-clock', text: 'Pending', color: '#d97706' },
+                inprogress: { class: 'status-inprogress', icon: 'fa-spinner fa-spin', text: 'In Progress', color: '#2563eb' },
+                complete: { class: 'status-complete', icon: 'fa-check-circle', text: 'Complete', color: '#059669' }
+            };
+            
+            const status = api.integrationStatus || 'pending';
+            const config = statusConfig[status];
+
+            return `
+                <div class="api-card" data-api-id="${api.id}" data-category="${api.category}">
+                    <div class="api-header">
+                        <div class="api-title">${api.name}</div>
+                        <span class="api-type">${api.method}</span>
+                    </div>
+                    <div class="api-url">${api.fullUrl}</div>
+                    <div class="api-params">
+                        <div class="param-title">Parameters:</div>
+                        ${api.params.map(param => `<span class="param-item">${param}</span>`).join('')}
+                        ${api.params.length === 0 ? '<span class="param-item">None</span>' : ''}
+                    </div>
+                    <div class="api-description" style="margin-top: 10px; color: var(--gray); font-size: 14px;">
+                        ${api.description}
+                    </div>
+                    
+                    <div class="integration-status">
+                        <button class="status-btn ${config.class}" onclick="openIntegrationModal(${api.id})">
+                            <i class="fas ${config.icon}"></i> ${config.text}
+                        </button>
+                        <div class="integration-stats">
+                            <span class="stat-item">
+                                <i class="fas fa-circle" style="color: ${config.color}; font-size: 8px;"></i>
+                                Integration: ${config.text}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="api-actions">
+                        <button class="btn btn-primary" onclick="testAPI(${api.id})">
+                            <i class="fas fa-play"></i> Test API
+                        </button>
+                        <button class="btn btn-secondary" onclick="copyURL(${api.id})">
+                            <i class="fas fa-copy"></i> Copy URL
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Load all APIs into their respective tabs
+        function loadAllAPIs() {
+            const categories = {
+                'all-apis': allAPIs,
+                'pipes': allAPIs.filter(api => api.category === 'pipes'),
+                'elbows': allAPIs.filter(api => api.category === 'elbows'),
+                'tees': allAPIs.filter(api => api.category === 'tees'),
+                'reducers': allAPIs.filter(api => api.category === 'reducers'),
+                'flanges': allAPIs.filter(api => api.category === 'flanges'),
+                'couplings': allAPIs.filter(api => api.category === 'couplings'),
+                'caps': allAPIs.filter(api => api.category === 'caps'),
+                'structural': allAPIs.filter(api => api.category === 'structural'),
+                'unit': allAPIs.filter(api => api.category === 'unit')
+            };
+
+            for (const [tabId, apis] of Object.entries(categories)) {
+                const grid = document.getElementById(`${tabId}-grid`);
+                if (grid) {
+                    grid.innerHTML = apis.map(api => createAPICard(api)).join('');
+                }
+            }
+        }
+
+        // Update counts
+        function updateCounts() {
+            const counts = {
+                'all': allAPIs.length,
+                'pipes': allAPIs.filter(api => api.category === 'pipes').length,
+                'elbows': allAPIs.filter(api => api.category === 'elbows').length,
+                'tees': allAPIs.filter(api => api.category === 'tees').length,
+                'reducers': allAPIs.filter(api => api.category === 'reducers').length,
+                'flanges': allAPIs.filter(api => api.category === 'flanges').length,
+                'couplings': allAPIs.filter(api => api.category === 'couplings').length,
+                'caps': allAPIs.filter(api => api.category === 'caps').length,
+                'structural': allAPIs.filter(api => api.category === 'structural').length,
+                'unit': allAPIs.filter(api => api.category === 'unit').length
+            };
+
+            // Update badge counts
+            document.getElementById('allCount').textContent = counts.all;
+            document.getElementById('pipesCount').textContent = counts.pipes;
+            document.getElementById('elbowsCount').textContent = counts.elbows;
+            document.getElementById('teesCount').textContent = counts.tees;
+            document.getElementById('reducersCount').textContent = counts.reducers;
+            document.getElementById('flangesCount').textContent = counts.flanges;
+            document.getElementById('couplingsCount').textContent = counts.couplings;
+            document.getElementById('capsCount').textContent = counts.caps;
+            document.getElementById('structuralCount').textContent = counts.structural;
+            document.getElementById('unitCount').textContent = counts.unit;
+            
+            // Update section titles
+            document.getElementById('totalApiCount').textContent = `${counts.all} APIs`;
+            document.getElementById('footerCount').textContent = counts.all;
+        }
+
+        // Switch between tabs
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab button
+            event.target.classList.add('active');
+            
+            // Hide test section when switching tabs
+            document.getElementById('testSection').style.display = 'none';
+        }
+
+        // ... existing code ...
+
+// Integration Status Functions - CORRECTED VERSION
+function openIntegrationModal(apiId) {
+    currentApiId = apiId;
+    const api = allAPIs.find(a => a.id === apiId);
+    if (api) {
+        document.getElementById('integrationApiName').textContent = api.name;
+        document.getElementById('integrationApiEndpoint').textContent = api.endpoint;
+        
+        // Set current status
+        selectedStatus = api.integrationStatus || 'pending';
+        
+        // Remove selected class from all options
+        document.querySelectorAll('.integration-option').forEach(option => {
+            option.classList.remove('selected');
+        });
+        
+        // CORRECTED: Use proper element IDs
+        let statusElementId;
+        if (selectedStatus === 'inprogress') {
+            statusElementId = 'statusInProgress';
+        } else if (selectedStatus === 'complete') {
+            statusElementId = 'statusComplete';
+        } else {
+            statusElementId = 'statusPending';
+        }
+        
+        // Check if element exists before adding class
+        const statusElement = document.getElementById(statusElementId);
+        if (statusElement) {
+            statusElement.classList.add('selected');
+        } else {
+            console.error('Element not found:', statusElementId);
+            // Fallback to default
+            document.getElementById('statusPending').classList.add('selected');
+        }
+        
+        document.getElementById('integrationModal').style.display = 'flex';
+    }
+}
+
+function closeIntegrationModal() {
+    document.getElementById('integrationModal').style.display = 'none';
+    currentApiId = null;
+}
+
+function selectIntegrationStatus(status) {
+    selectedStatus = status;
+    
+    // Remove selected class from all options
+    document.querySelectorAll('.integration-option').forEach(option => {
+        option.classList.remove('selected');
+    });
+    
+    // CORRECTED: Use proper element IDs
+    let statusElementId;
+    if (status === 'inprogress') {
+        statusElementId = 'statusInProgress';
+    } else if (status === 'complete') {
+        statusElementId = 'statusComplete';
+    } else {
+        statusElementId = 'statusPending';
+    }
+    
+    const statusElement = document.getElementById(statusElementId);
+    if (statusElement) {
+        statusElement.classList.add('selected');
+    }
+}
+
+function saveIntegrationStatus() {
+    if (currentApiId) {
+        const api = allAPIs.find(a => a.id === currentApiId);
+        if (api) {
+            api.integrationStatus = selectedStatus;
+            
+            // Save to localStorage
+            saveIntegrationStatusToStorage();
+            
+            // Reload APIs to update status
+            loadAllAPIs();
+            
+            // Close modal
+            closeIntegrationModal();
+            
+            // Show notification
+            showNotification(`Integration status updated to "${selectedStatus}" for ${api.name}`, 'success');
+        }
+    }
+}
+
+// ... rest of your code ...
+
+        function showIntegrationStats() {
+            const stats = {
+                pending: allAPIs.filter(api => (api.integrationStatus || 'pending') === 'pending').length,
+                inprogress: allAPIs.filter(api => (api.integrationStatus || 'pending') === 'inprogress').length,
+                complete: allAPIs.filter(api => (api.integrationStatus || 'pending') === 'complete').length,
+                total: allAPIs.length
+            };
+            
+            const percentageComplete = ((stats.complete / stats.total) * 100).toFixed(1);
+            
+            const message = `📊 Integration Statistics:\n\n` +
+                          `✅ Complete: ${stats.complete} APIs (${percentageComplete}%)\n` +
+                          `🔄 In Progress: ${stats.inprogress} APIs\n` +
+                          `⏳ Pending: ${stats.pending} APIs\n` +
+                          `📈 Total: ${stats.total} APIs`;
+            
+            showNotification(message, 'info');
+        }
+
+        // Copy API URL to clipboard
+        function copyURL(apiId) {
+            const api = allAPIs.find(a => a.id === apiId);
+            if (api) {
+                navigator.clipboard.writeText(api.fullUrl).then(() => {
+                    const button = event.target.closest('button');
+                    const originalText = button.innerHTML;
+                    button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    button.style.background = '#10b981';
+                    
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.style.background = '';
+                    }, 2000);
+                    
+                    showNotification(`URL copied to clipboard!`, 'success');
+                });
+            }
+        }
+
+        // Test API function
+        function testAPI(apiId) {
+            const api = allAPIs.find(a => a.id === apiId);
+            if (api) {
+                document.getElementById('testUrl').value = api.fullUrl;
+                document.getElementById('testSection').style.display = 'block';
+                
+                // Scroll to test section
+                document.getElementById('testSection').scrollIntoView({ behavior: 'smooth' });
+                
+                showNotification(`Testing ${api.name} API...`, 'info');
+            }
+        }
+
+        // Close test section
+        function closeTestSection() {
+            document.getElementById('testSection').style.display = 'none';
+        }
+
+        // Send test request
+        async function sendTestRequest() {
+            const url = document.getElementById('testUrl').value;
+            const paramsText = document.getElementById('testParams').value;
+            const responseBox = document.getElementById('testResponse');
+            
+            responseBox.textContent = "Sending request...";
+            responseBox.style.color = "#e2e8f0";
+            
+            try {
+                // For POST requests
+                if (url.includes('/api/convert-units/')) {
+                    let postData = {};
+                    if (paramsText.trim()) {
+                        try {
+                            postData = JSON.parse(paramsText);
+                        } catch (e) {
+                            responseBox.textContent = "Error: Invalid JSON format\nExpected format: {\"value\": 1, \"from_unit\": \"mm\", \"to_unit\": \"um\"}";
+                            responseBox.style.color = "#ef4444";
+                            return;
+                        }
+                    } else {
+                        // Default POST data for unit conversion
+                        postData = { value: 1, from_unit: "mm", to_unit: "um" };
+                    }
+                    
+                    const response = await axios.post(url.split('?')[0], postData);
+                    responseBox.textContent = JSON.stringify(response.data, null, 2);
+                    responseBox.style.color = "#10b981";
+                } else {
+                    // For GET requests
+                    let params = {};
+                    if (paramsText.trim()) {
+                        try {
+                            params = JSON.parse(paramsText);
+                        } catch (e) {
+                            responseBox.textContent = "Error: Invalid JSON format in parameters";
+                            responseBox.style.color = "#ef4444";
+                            return;
+                        }
+                    }
+                    
+                    // Convert params to URL query string
+                    const queryString = new URLSearchParams(params).toString();
+                    const fullUrl = queryString ? `${url.split('?')[0]}?${queryString}` : url;
+                    
+                    const response = await axios.get(fullUrl);
+                    responseBox.textContent = JSON.stringify(response.data, null, 2);
+                    responseBox.style.color = "#10b981";
+                }
+                
+                showNotification('API test successful!', 'success');
+            } catch (error) {
+                responseBox.textContent = `Error: ${error.message}\n\nStatus: ${error.response?.status}\nResponse: ${JSON.stringify(error.response?.data, null, 2)}`;
+                responseBox.style.color = "#ef4444";
+                showNotification('API test failed!', 'error');
+            }
+        }
+
+        // Search APIs
+        function searchAPIs() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            // If search is empty, show all APIs normally
+            if (!searchTerm) {
+                loadAllAPIs();
+                return;
+            }
+            
+            // Filter APIs based on search term
+            const filteredAPIs = allAPIs.filter(api => 
+                api.name.toLowerCase().includes(searchTerm) ||
+                api.endpoint.toLowerCase().includes(searchTerm) ||
+                api.description.toLowerCase().includes(searchTerm) ||
+                api.params.some(param => param.toLowerCase().includes(searchTerm)) ||
+                (api.integrationStatus && api.integrationStatus.includes(searchTerm))
+            );
+            
+            // Show filtered results in all tabs
+            const tabs = ['all-apis', 'pipes', 'elbows', 'tees', 'reducers', 'flanges', 'couplings', 'caps', 'structural', 'unit'];
+            
+            tabs.forEach(tab => {
+                const grid = document.getElementById(`${tab}-grid`);
+                if (grid) {
+                    if (tab === 'all-apis') {
+                        grid.innerHTML = filteredAPIs.map(api => createAPICard(api)).join('');
+                    } else {
+                        const categoryAPIs = filteredAPIs.filter(api => api.category === tab.slice(0, -1));
+                        grid.innerHTML = categoryAPIs.map(api => createAPICard(api)).join('');
+                    }
+                }
+            });
+        }
+
+        // Add CSS for notifications
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeDashboard);
+
+        // Close modal when clicking outside
+        document.getElementById('integrationModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeIntegrationModal();
+            }
+        });
+    </script>
+</body>
+</html>
